@@ -1,13 +1,17 @@
 import streamlit as st
-import map  # your map.py file, assumed to have a function to render part 1
-import diagram  # your diagram.py file, assumed to have a function to render part 2
+from diagram import render as render_diagram
+from map import render as render_map
+from co2 import render as render_co2
+from details import render as render_details
 
-st.title("ParkSmart – Urban Parking Finder")
+st.sidebar.title("Navigation")
+page = st.sidebar.radio("Go to", ["Map", "Diagram", "CO2 & Energy", "Details"])
 
-tab1, tab2 = st.tabs(["Map & List", "Diagrams"])
-
-with tab1:
-    map.render_map()  # assuming map.py has a function called render_map() that draws part 1
-
-with tab2:
-    diagram.render_diagram()  # assuming diagram.py has a function called render_diagram() that draws part 2
+if page == "Map":
+    render_map()
+elif page == "Diagram":
+    render_diagram()
+elif page == "CO2 & Energy":
+    render_co2()
+elif page == "Details":
+    render_details()

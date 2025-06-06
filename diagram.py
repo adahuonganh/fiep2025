@@ -75,7 +75,7 @@ def show_comparison_charts(filtered_df):
     top5 = filtered_df.head(5)
     st.subheader("📊 Compare Top 5 Parking Options")
 
-    tabs = st.tabs(["Fee", "Travel Time", "Spots Available"])
+    tabs = st.tabs(["Fee", "Travel Distance", "Spots Available"])
 
     with tabs[0]:
         fig, ax = plt.subplots()
@@ -101,12 +101,12 @@ def show_comparison_charts(filtered_df):
         plt.setp(ax.get_xticklabels(), rotation=45, ha="right")
         st.pyplot(fig)
 
-def main():
+def render():
     st.title("📈 Parking Spot Comparison")
 
     df = load_data()
 
-    # Sidebar to match map.py
+    # Sidebar to match map.py or main app style
     st.sidebar.header("📍 Your Location")
     method = st.sidebar.radio("Select method:", ["Drop pin on map", "Enter address", "Enter coordinates"])
     lat, lon = None, None
@@ -139,6 +139,9 @@ def main():
 
     st.success(f"Filtered {len(filtered)} parking spots.")
     show_comparison_charts(filtered)
+
+def main():
+    render()
 
 if __name__ == "__main__":
     main()

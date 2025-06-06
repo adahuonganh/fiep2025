@@ -10,7 +10,7 @@ from datetime import datetime
 # --- Load Data ---
 @st.cache_data
 def load_data():
-    return pd.read_csv("data/parking_data.csv")
+    return pd.read_csv("parking_data.csv")
 
 df = load_data()
 

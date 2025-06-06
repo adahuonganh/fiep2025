@@ -48,7 +48,8 @@ if df is not None:
     # Button to trigger geocoding
     if st.button("Geocode Addresses"):
         st.info("Geocoding... This may take a while due to API limits.")
-        df[["latitude", "longitude"]] = df["Address"].apply(lambda x: pd.Series(geocode_with_retry(x))
+        df[["latitude", "longitude"]] = df["Address"].apply(
+            lambda x: pd.Series(geocode_with_retry(x)))
         
         st.subheader("Geocoded Data")
         st.write(df)

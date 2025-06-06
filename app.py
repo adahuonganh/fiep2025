@@ -1,17 +1,18 @@
+# app.py
 import streamlit as st
-from diagram import render as render_diagram
 from map import render as render_map
-from co2 import render as render_co2
-from details import render as render_details
+from diagram import render as render_diagram
 
-st.sidebar.title("Navigation")
-page = st.sidebar.radio("Go to", ["Map", "Diagram", "CO2 & Energy", "Details"])
+def render():
+    st.title("🚗 Urban Parking Finder")
 
-if page == "Map":
-    render_map()
-elif page == "Diagram":
-    render_diagram()
-elif page == "CO2 & Energy":
-    render_co2()
-elif page == "Details":
-    render_details()
+    # Sidebar navigation to switch between parts
+    page = st.sidebar.selectbox("Choose view", ["Map", "Comparison Diagrams"])
+
+    if page == "Map":
+        render_map()
+    elif page == "Comparison Diagrams":
+        render_diagram()
+
+if __name__ == "__main__":
+    render()

@@ -1,82 +1,72 @@
+# app.py
 import streamlit as st
 import pandas as pd
-from geopy.geocoders import Nominatim
-from geopy.exc import GeocoderTimedOut, GeocoderUnavailable
-import time
+from map import draw_map  # your function that generates folium/map
+from diagram import create_diagrams  # your function(s) that generate diagrams/charts
 
-# Set page config first
-st.set_page_config(page_title="ParkSmart", layout="wide")
+st.set_page_config(
+    page_title="ParkSmart",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
-# Load data function
+# Sidebar: controls & settings
+st.sidebar.title("Controls")
+
+# Option to re-load CSV file
+csv_path = st.sidebar.text_input(
+    "Parking CSV file path", value="parking_data.csv"
+)
+use_sample = st.sidebar.checkbox("Load example data", value=False)
+
+# Tabs: Map, Diagrams, Data Table
+tabs = st.tabs(["Map View", "Charts", "Data"])
+
 @st.cache_data
-def load_data():
-    DATA_URL = "https://raw.githubusercontent.com/adahuonganh/fiep2025/main/parking_data.csv"
-    try:
-        return pd.read_csv(DATA_URL)
-    except Exception as e:
-        st.error(f"Failed to load data: {e}")
-        return None
+def load_data(path, sample):
+    if sample:
+        # fallback sample from your repo or demo
+        return pd.read_csv(path)  # adapt as needed
+    else:
+        return pd.read_csv(path)
 
-# Geocoding functions
-@st.cache_resource
-def setup_geocoder():
-    return Nominatim(user_agent="fiep2025_parking_app", timeout=10)
+df = load_data(csv_path, use_sample)
 
-def geocode_with_retry(address, max_retries=3):
-    geolocator = setup_geocoder()
-    for _ in range(max_retries):
-        try:
-            location = geolocator.geocode(address)
-            if location:
-                return (location.latitude, location.longitude)
-        except (GeocoderTimedOut, GeocoderUnavailable):
-            time.sleep(1)
-    return (None, None)
+# ===== Tab: Map View =====
+with tabs[0]:
+    st.header("Parking Map")
+    if df is not None and not df.empty:
+        # Make sure your draw_map returns a folium.Folium object or a compatible Streamlit component
+        m = draw_map(df)
+        st_data = m._repr_html_()
+        st.components.v1.html(st_data, height=600, scrolling=True)
+    else:
+        st.info("No data available to draw map.")
 
-# Main page
-def main_page():
-    st.title("ParkSmart - Find your parking place")
-    st.markdown("""
-    Geocodes addresses from your GitHub repository's CSV file.
-    """)
+# ===== Tab: Charts =====
+with tabs[1]:
+    st.header("Parking Analytics")
+    if df is not None and not df.empty:
+        # Assume create_diagrams returns one or more matplotlib/plotly charts
+        charts = create_diagrams(df)
+        if isinstance(charts, dict):
+            for title, chart in charts.items():
+                st.subheader(title)
+                st.pyplot(chart) if hasattr(chart, 'figure') else st.write(chart)
+        else:
+            st.pyplot(charts) if hasattr(charts, 'figure') else st.write(charts)
+    else:
+        st.info("No data available to create charts.")
 
-    df = load_data()
+# ===== Tab: Raw Data =====
+with tabs[2]:
+    st.header("Parking Data Table")
+    st.write(f"Total records: {len(df):,}")
+    st.dataframe(df, use_container_width=True)
 
-    if df is not None:
-        st.subheader("Raw Data")
-        st.write(df)
-
-        if st.button("Geocode Addresses"):
-            st.info("Geocoding... This may take a while due to API limits.")
-            df[["latitude", "longitude"]] = df["Address"].apply(
-                lambda x: pd.Series(geocode_with_retry(x)))
-            
-            st.subheader("Geocoded Data")
-            st.write(df)
-
-            st.subheader("Map View")
-            st.map(df.dropna(subset=["latitude", "longitude"]))
-
-            st.download_button(
-                label="Download Geocoded Data (CSV)",
-                data=df.to_csv(index=False).encode("utf-8"),
-                file_name="geocoded_parking_data.csv",
-                mime="text/csv"
-            )
-
-# Page navigation
-def main():
-    st.sidebar.title("Navigation")
-    page = st.sidebar.radio("Go to", ["Main Page", "Interactive Map", "Data Analysis"])
-
-    if page == "Main Page":
-        main_page()
-    elif page == "Interactive Map":
-        from map import render_map
-        render_map()
-    elif page == "Data Analysis":
-        from diagram import render
-        render()
-
-if __name__ == "__main__":
-    main()
+# ===== Footer =====
+st.markdown("---")
+st.markdown(
+    "Built with ❤️ using [Streamlit](https://streamlit.io) | "
+    "[View on GitHub](https://github.com/adahuonganh/fiep2025)"
+)

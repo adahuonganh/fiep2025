@@ -21,7 +21,7 @@ def haversine(lat1, lon1, lat2, lon2):
 @st.cache_data
 def load_data():
     try:
-        df = pd.read_csv("parking_data.csv")
+        df = pd.read_csv("parking_data.csv", encoding="latin1")  # or try encoding="cp1252"
 
         df['open_time'] = df['open_time'].astype(str).str.zfill(2).replace("24", "00")
         df['close_time'] = df['close_time'].astype(str).str.zfill(2).replace("24", "23")

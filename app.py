@@ -5,7 +5,7 @@ from geopy.exc import GeocoderTimedOut, GeocoderUnavailable
 import time
 
 # Set up the app
-st.title("📍 Parking Data Geocoder")
+st.title("ParkSmart - Find your parking place")
 st.markdown("""
 Geocodes addresses from your GitHub repository's CSV file.
 """)

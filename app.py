@@ -1,72 +1,43 @@
 # app.py
 import streamlit as st
 import pandas as pd
-from map import draw_map  # your function that generates folium/map
-from diagram import create_diagrams  # your function(s) that generate diagrams/charts
+from map import render_map, load_data as load_map_data
+from diagram import render, load_data as load_diagram_data
 
+# Set up app layout
 st.set_page_config(
-    page_title="ParkSmart",
+    page_title="ParkSmart All-in-One",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Sidebar: controls & settings
-st.sidebar.title("Controls")
+tabs = st.tabs(["Map View", "Compare Parkings", "Raw Data"])
 
-# Option to re-load CSV file
-csv_path = st.sidebar.text_input(
-    "Parking CSV file path", value="parking_data.csv"
-)
-use_sample = st.sidebar.checkbox("Load example data", value=False)
-
-# Tabs: Map, Diagrams, Data Table
-tabs = st.tabs(["Map View", "Charts", "Data"])
-
-@st.cache_data
-def load_data(path, sample):
-    if sample:
-        # fallback sample from your repo or demo
-        return pd.read_csv(path)  # adapt as needed
-    else:
-        return pd.read_csv(path)
-
-df = load_data(csv_path, use_sample)
-
-# ===== Tab: Map View =====
+# --- Tab 1: Map ---
 with tabs[0]:
-    st.header("Parking Map")
-    if df is not None and not df.empty:
-        # Make sure your draw_map returns a folium.Folium object or a compatible Streamlit component
-        m = draw_map(df)
-        st_data = m._repr_html_()
-        st.components.v1.html(st_data, height=600, scrolling=True)
-    else:
-        st.info("No data available to draw map.")
+    render_map()
 
-# ===== Tab: Charts =====
+# --- Tab 2: Charts / Comparison ---
 with tabs[1]:
-    st.header("Parking Analytics")
-    if df is not None and not df.empty:
-        # Assume create_diagrams returns one or more matplotlib/plotly charts
-        charts = create_diagrams(df)
-        if isinstance(charts, dict):
-            for title, chart in charts.items():
-                st.subheader(title)
-                st.pyplot(chart) if hasattr(chart, 'figure') else st.write(chart)
-        else:
-            st.pyplot(charts) if hasattr(charts, 'figure') else st.write(charts)
-    else:
-        st.info("No data available to create charts.")
+    render()
 
-# ===== Tab: Raw Data =====
+# --- Tab 3: Raw Data Viewer ---
 with tabs[2]:
-    st.header("Parking Data Table")
-    st.write(f"Total records: {len(df):,}")
-    st.dataframe(df, use_container_width=True)
+    st.header("📝 Raw Parking Data")
+    # Merge data loaders to ensure consistency
+    df1 = load_map_data()
+    df2 = load_diagram_data()
+    if not df1.empty:
+        st.subheader("From map.py loader")
+        st.dataframe(df1, use_container_width=True)
+    if not df2.empty:
+        st.subheader("From diagram.py loader")
+        st.dataframe(df2, use_container_width=True)
+    if df1.empty and df2.empty:
+        st.warning("No data available – check `parking_data.csv` and loaders.")
 
-# ===== Footer =====
+# Footer
 st.markdown("---")
 st.markdown(
-    "Built with ❤️ using [Streamlit](https://streamlit.io) | "
-    "[View on GitHub](https://github.com/adahuonganh/fiep2025)"
+    "🚗 Built with ❤️ | [GitHub Repository](https://github.com/adahuonganh/fiep2025)"
 )

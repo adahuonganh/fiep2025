@@ -9,7 +9,7 @@ from datetime import datetime
 
 @st.cache_data
 def load_data():
-    return pd.read_csv("parking_data.csv")
+    return pd.read_csv("parking_data.csv", encoding="latin1")  # or try encoding="cp1252"
 
 def render_map():
     df = load_data()

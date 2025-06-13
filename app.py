@@ -46,17 +46,20 @@ max_dist = st.sidebar.slider("Max distance (km)", 0.1, 20.0, 10.0, 0.1)
 fee_range = st.sidebar.slider("Fee range (€/h)", 0.0, 20.0, (0.0, 5.0), 0.1)
 ev_only = st.sidebar.checkbox("Only EV charging spots")
 
-# Add the Fuel Price Dashboard tab
+# Add sorting options
+sort_method = st.sidebar.radio("Sort parking spots by:", ["Closest Distance", "Lowest Fee"])
+
+# Add Fuel Price Dashboard as a tab
 tabs = st.tabs(["Map View", "Compare Parkings", "Fuel Prices", "Raw Data"])
 
 with tabs[0]:
-    render_map(st.session_state.user_lat, st.session_state.user_lon, max_dist, fee_range, ev_only)
+    render_map(st.session_state.user_lat, st.session_state.user_lon, max_dist, fee_range, ev_only, sort_method)
 
 with tabs[1]:
     render(st.session_state.user_lat, st.session_state.user_lon, max_dist, fee_range, ev_only)
 
 with tabs[2]:
-    render_fuel_dashboard()  # Call the Fuel Price Dashboard
+    render_fuel_dashboard()  # Call the Fuel Price Dashboard function
 
 with tabs[3]:
     st.header("📝 Raw Parking Data")

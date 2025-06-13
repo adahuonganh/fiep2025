@@ -16,7 +16,7 @@ if "user_lon" not in st.session_state:
     st.session_state.user_lon = 8.6644491
 
 st.sidebar.header("📍 Choose Your Location")
-location_method = st.sidebar.radio("Select method:", ["Drop pin on map", "Enter address/postal code", "Enter coordinates"])
+location_method = st.sidebar.radio("Select method:", ["Enter address/postal code", "Enter coordinates"])
 
 if location_method == "Enter address/postal code":
     address_input = st.sidebar.text_input("Enter address or postal code:")
@@ -27,12 +27,9 @@ if location_method == "Enter address/postal code":
             st.session_state.user_lat = location.latitude
             st.session_state.user_lon = location.longitude
             st.sidebar.success(f"Found location: {st.session_state.user_lat:.6f}, {st.session_state.user_lon:.6f}")
-            st.rerun()  # Force app to rerun
+            st.rerun()  # Force app to rerun for updates
         else:
             st.sidebar.error("Could not find location.")
-
-elif location_method == "Drop pin on map":
-    st.sidebar.info("Drop a pin after closing the sidebar.")
 
 else:
     lat = st.sidebar.number_input("Latitude", value=st.session_state.user_lat, format="%.6f", key="lat_input")
@@ -41,7 +38,7 @@ else:
     if lat != st.session_state.user_lat or lon != st.session_state.user_lon:
         st.session_state.user_lat = lat
         st.session_state.user_lon = lon
-        st.rerun()  # Force app to rerun when coordinates change
+        st.rerun()  # Ensure full recalculation when location changes
 
 st.sidebar.header("⚙️ Filters")
 max_dist = st.sidebar.slider("Max distance (km)", 0.1, 20.0, 10.0, 0.1)
@@ -59,3 +56,6 @@ with tabs[1]:
 with tabs[2]:
     st.header("📝 Raw Parking Data")
     st.warning("Data integration needs to be adjusted for consistency.")
+
+st.markdown("---")
+st.markdown("🚗 Built with ❤️ | [GitHub Repository](https://github.com/adahuonganh/fiep2025)")

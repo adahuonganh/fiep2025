@@ -38,7 +38,6 @@ def filter_data(df, lat, lon, max_dist, fee_range, ev_only, sort_method):
         df = df[df['ev_charging'] > 0]
 
     df = df.sort_values('distance' if sort_method == "Closest Distance" else 'fee_per_hour')
-
     return df
 
 def create_map(lat, lon, df):
@@ -69,7 +68,7 @@ def create_map(lat, lon, df):
 
     return m
 
-def render_map(lat, lon, max_dist, fee_range, ev_only, sort_method):
+def render_map(lat, lon, max_dist, fee_range, ev_only, sort_method, page):
     df = load_data()
     filtered = filter_data(df, lat, lon, max_dist, fee_range, ev_only, sort_method)
 
@@ -77,10 +76,22 @@ def render_map(lat, lon, max_dist, fee_range, ev_only, sort_method):
         st.warning("No matching parking spots.")
         return
 
-    map_obj = create_map(lat, lon, filtered)
+    start_idx = (page - 1) * 10
+    end_idx = start_idx + 10
+    total_pages = (len(filtered) - 1) // 10 + 1
+
+    map_obj = create_map(lat, lon, filtered.iloc[start_idx:end_idx])
     st_folium(map_obj, width=700, height=500)
 
     st.subheader("📍 Available Parking Spots")
-    for _, row in filtered.iterrows():
+    for _, row in filtered.iloc[start_idx:end_idx].iterrows():
         st.markdown(f"**🚗 {row['name']}** - €{row['fee_per_hour']}/h ({row['distance']:.2f} km)")
         st.markdown(f"[🗺️ Open in Google Maps](https://www.google.com/maps/dir/?api=1&origin={lat},{lon}&destination={row['latitude']},{row['longitude']}&travelmode=driving)")
+
+    if st.button("⬅️ Previous", disabled=page == 1):
+        st.session_state.page -= 1
+        st.rerun()
+    
+    if st.button("➡️ Next", disabled=page >= total_pages):
+        st.session_state.page += 1
+        st.rerun()

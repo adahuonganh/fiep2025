@@ -11,7 +11,7 @@ def load_data():
     return pd.read_csv("parking_data.csv", encoding="latin1")
 
 def haversine(lat1, lon1, lat2, lon2):
-    R = 6371  # Earth radius in km
+    R = 6371
     lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
     dlat, dlon = lat2 - lat1, lon2 - lon1
     a = sin(dlat/2)**2 + cos(lat1)*cos(lat2)*sin(dlon/2)**2
@@ -37,7 +37,6 @@ def filter_data(df, lat, lon, max_dist, fee_range, ev_only, sort_method):
     if ev_only:
         df = df[df['ev_charging'] > 0]
 
-    # Sorting logic
     df = df.sort_values('distance' if sort_method == "Closest Distance" else 'fee_per_hour')
 
     return df
@@ -81,8 +80,7 @@ def render_map(lat, lon, max_dist, fee_range, ev_only, sort_method):
     map_obj = create_map(lat, lon, filtered)
     st_folium(map_obj, width=700, height=500)
 
-    # Display list of matching parking spots under the map
     st.subheader("📍 Available Parking Spots")
     for _, row in filtered.iterrows():
         st.markdown(f"**🚗 {row['name']}** - €{row['fee_per_hour']}/h ({row['distance']:.2f} km)")
-        st.markdown(f"[🗺️ Open in Google Maps](https://www.google.com/maps/search/?api=1&query={row['latitude']},{row['longitude']})")
+        st.markdown(f"[🗺️ Open in Google Maps](https://www.google.com/maps/dir/?api=1&origin={lat},{lon}&destination={row['latitude']},{row['longitude']}&travelmode=driving)")

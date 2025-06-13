@@ -1,4 +1,5 @@
 import streamlit as st
+import geocoder
 from geopy.geocoders import Nominatim
 from map import render_map
 from diagram import render
@@ -10,10 +11,10 @@ st.set_page_config(
 )
 
 st.sidebar.header("📍 Choose Your Location")
-location_method = st.sidebar.radio("Select method:", ["Drop pin on map", "Enter address/postal code", "Enter coordinates"])
+location_method = st.sidebar.radio("Select method:", ["Drop pin on map", "Enter address/postal code", "Enter coordinates", "📍 Use My Location"])
 
-DEFAULT_LAT, DEFAULT_LON = 50.1270332, 8.6644491  # Default location
-lat, lon = DEFAULT_LAT, DEFAULT_LON  # Defaults
+DEFAULT_LAT, DEFAULT_LON = 50.1270332, 8.6644491
+lat, lon = DEFAULT_LAT, DEFAULT_LON  
 
 if location_method == "Drop pin on map":
     st.sidebar.info("Drop a pin after closing the sidebar.")
@@ -27,6 +28,14 @@ elif location_method == "Enter address/postal code":
             st.sidebar.success(f"Found location: {lat:.6f}, {lon:.6f}")
         else:
             st.sidebar.error("Could not find location.")
+elif location_method == "📍 Use My Location":
+    try:
+        geo = geocoder.ip("me")
+        lat, lon = geo.latlng
+        st.sidebar.success(f"Detected location: {lat:.6f}, {lon:.6f}")
+    except:
+        st.sidebar.error("Could not retrieve location.")
+
 else:
     lat = st.sidebar.number_input("Latitude", value=DEFAULT_LAT, format="%.6f")
     lon = st.sidebar.number_input("Longitude", value=DEFAULT_LON, format="%.6f")

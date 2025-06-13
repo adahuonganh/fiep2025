@@ -6,7 +6,7 @@ from diagram import render, load_data as load_diagram_data
 
 # Set up app layout
 st.set_page_config(
-    page_title="ParkSmart All-in-One",
+    page_title="ParkSmart - Find your parking spot",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -23,7 +23,7 @@ with tabs[1]:
 
 # --- Tab 3: Raw Data Viewer ---
 with tabs[2]:
-    st.header("📝 Raw Parking Data")
+    st.header("Raw Parking Data")
     # Merge data loaders to ensure consistency
     df1 = load_map_data()
     df2 = load_diagram_data()
@@ -38,6 +38,3 @@ with tabs[2]:
 
 # Footer
 st.markdown("---")
-st.markdown(
-    "🚗 Built with ❤️ | [GitHub Repository](https://github.com/adahuonganh/fiep2025)"
-)

@@ -39,16 +39,21 @@ def render_map(lat, lon, max_dist, fee_range, ev_only):
     df = load_data()
     filtered = filter_data(df, lat, lon, max_dist, fee_range, ev_only)
 
+    # Create the interactive map
     map_obj = create_map(lat, lon, filtered)
     data = st_folium(map_obj, width=700, height=500)
 
+    # Update location when pin is moved
     if data.get("last_clicked"):
         lat = data["last_clicked"]["lat"]
         lon = data["last_clicked"]["lng"]
+        filtered = filter_data(df, lat, lon, max_dist, fee_range, ev_only)  # Refresh parking spots
         st.success(f"New location set: {lat:.6f}, {lon:.6f}")
 
     if filtered.empty:
         st.warning("No matching parking spots.")
         return
 
+    # Only show ONE map
+    map_obj = create_map(lat, lon, filtered)
     st_folium(map_obj, width=700, height=500)

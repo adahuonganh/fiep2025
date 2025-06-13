@@ -10,7 +10,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Initialize session state for location tracking
+# Initialize session state for location tracking & pagination
 if "user_lat" not in st.session_state:
     st.session_state.user_lat = 50.1270332
 if "user_lon" not in st.session_state:
@@ -20,17 +20,20 @@ if "page" not in st.session_state:
 
 st.sidebar.header("📍 Choose Your Location")
 
-lat = st.sidebar.number_input("Latitude", value=st.session_state.user_lat, format="%.6f", key="lat_input")
-lon = st.sidebar.number_input("Longitude", value=st.session_state.user_lon, format="%.6f", key="lon_input")
+# Default location method to "Use coordinates"
+location_method = st.sidebar.radio("Select method:", ["Use coordinates", "Enter address/postal code"], index=0)
 
-if lat != st.session_state.user_lat or lon != st.session_state.user_lon:
-    st.session_state.user_lat = lat
-    st.session_state.user_lon = lon
-    st.session_state.page = 1  # Reset pagination when location changes
-    st.rerun()
+if location_method == "Use coordinates":
+    lat = st.sidebar.number_input("Latitude", value=st.session_state.user_lat, format="%.6f", key="lat_input")
+    lon = st.sidebar.number_input("Longitude", value=st.session_state.user_lon, format="%.6f", key="lon_input")
 
-location_method = st.sidebar.radio("Select method:", ["Enter address/postal code", "Use coordinates"])
-if location_method == "Enter address/postal code":
+    if lat != st.session_state.user_lat or lon != st.session_state.user_lon:
+        st.session_state.user_lat = lat
+        st.session_state.user_lon = lon
+        st.session_state.page = 1  # Reset pagination when location changes
+        st.rerun()
+
+elif location_method == "Enter address/postal code":
     address_input = st.sidebar.text_input("Enter address or postal code:")
     if address_input:
         geolocator = Nominatim(user_agent="parking_finder")
@@ -50,7 +53,7 @@ fee_range = st.sidebar.slider("Fee range (€/h)", 0.0, 20.0, (0.0, 5.0), 0.1)
 ev_only = st.sidebar.checkbox("Only EV charging spots")
 sort_method = st.sidebar.radio("Sort parking spots by:", ["Closest Distance", "Lowest Fee"])
 
-tabs = st.tabs(["Map View", "Compare Parkings", "Fuel Prices"])
+tabs = st.tabs(["Map View", "Compare Parkings", "Fuel Prices", "Raw Data"])
 
 with tabs[0]:
     render_map(st.session_state.user_lat, st.session_state.user_lon, max_dist, fee_range, ev_only, sort_method, st.session_state.page)
@@ -60,3 +63,10 @@ with tabs[1]:
 
 with tabs[2]:
     render_fuel_dashboard()
+
+with tabs[3]:
+    st.header("📝 Raw Parking Data")
+    st.warning("Data integration needs to be adjusted for consistency.")
+
+st.markdown("---")
+st.markdown("🚗 Built with ❤️ | [GitHub Repository](https://github.com/adahuonganh/fiep2025)")

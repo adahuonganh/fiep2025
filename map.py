@@ -104,13 +104,13 @@ def render_map():
             lat = st.number_input("Latitude", value=50.1109)
             lon = st.number_input("Longitude", value=8.6821)
 
-        st.header("⚙️ Filters")
-        max_dist = st.slider("Max distance (km)", 0.1, 20.0, 2.0, 0.1)
-        fee = st.slider("Fee range (€/h)", 0.0, 10.0, (0.0, 5.0), 0.1)
-        ev = st.checkbox("Only EV charging")
-
-    if not lat or not lon:
-        lat, lon = 50.1109, 8.6821
+        st.header("Filters")
+        max_dist = st.sidebar.slider("Max distance (km)", 0.1, 20.0, 10.0, 0.1)
+        fee_min, fee_max = st.sidebar.slider("Fee range (€/h)", 0.0, 20.0, (0.0, 5.0), 0.1)
+        ev_only = st.sidebar.checkbox("Only EV charging spots")
+   
+        if lat is None or lon is None:
+            lat, lon = 50.1270332, 8.6644491
 
     filtered = filter_data(df, lat, lon, max_dist, fee, ev)
 

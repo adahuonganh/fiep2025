@@ -2,6 +2,7 @@ import streamlit as st
 from geopy.geocoders import Nominatim
 from map import render_map
 from diagram import render
+from fuel_dashboard import render_fuel_dashboard  # Import Fuel Dashboard function
 
 st.set_page_config(
     page_title="ParkSmart All-in-One",
@@ -45,7 +46,8 @@ max_dist = st.sidebar.slider("Max distance (km)", 0.1, 20.0, 10.0, 0.1)
 fee_range = st.sidebar.slider("Fee range (€/h)", 0.0, 20.0, (0.0, 5.0), 0.1)
 ev_only = st.sidebar.checkbox("Only EV charging spots")
 
-tabs = st.tabs(["Map View", "Compare Parkings", "Raw Data"])
+# Add the Fuel Price Dashboard tab
+tabs = st.tabs(["Map View", "Compare Parkings", "Fuel Prices", "Raw Data"])
 
 with tabs[0]:
     render_map(st.session_state.user_lat, st.session_state.user_lon, max_dist, fee_range, ev_only)
@@ -54,8 +56,8 @@ with tabs[1]:
     render(st.session_state.user_lat, st.session_state.user_lon, max_dist, fee_range, ev_only)
 
 with tabs[2]:
+    render_fuel_dashboard()  # Call the Fuel Price Dashboard
+
+with tabs[3]:
     st.header("📝 Raw Parking Data")
     st.warning("Data integration needs to be adjusted for consistency.")
-
-st.markdown("---")
-st.markdown("🚗 Built with ❤️ | [GitHub Repository](https://github.com/adahuonganh/fiep2025)")

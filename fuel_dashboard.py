@@ -5,7 +5,7 @@ from plotly.subplots import make_subplots
 
 @st.cache_data
 def load_fuel_prices():
-    df = pd.read_csv("Kraftstoffpreise an öffentlichen Tankstellen.csv", sep=";", skiprows=5)
+    df = pd.read_csv("fuel_price", sep=";", skiprows=5)
     df = df.rename(columns={'Datum': 'date', 'Super E10': 'e10', 'Diesel': 'diesel', 'Super E5': 'e5'})
     df['date'] = pd.to_datetime(df['date'])
 

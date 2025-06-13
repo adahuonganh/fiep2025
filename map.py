@@ -11,7 +11,7 @@ def load_data():
     return pd.read_csv("parking_data.csv", encoding="latin1")
 
 def haversine(lat1, lon1, lat2, lon2):
-    R = 6371
+    R = 6371  # Earth radius in km
     lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
     dlat, dlon = lat2 - lat1, lon2 - lon1
     a = sin(dlat/2)**2 + cos(lat1)*cos(lat2)*sin(dlon/2)**2
@@ -39,16 +39,9 @@ def render_map(lat, lon, max_dist, fee_range, ev_only):
     df = load_data()
     filtered = filter_data(df, lat, lon, max_dist, fee_range, ev_only)
 
-    map_obj = create_map(lat, lon, filtered)
-    data = st_folium(map_obj, width=700, height=500)
-
-    if data.get("last_clicked"):
-        lat = data["last_clicked"]["lat"]
-        lon = data["last_clicked"]["lng"]
-        st.success(f"New location set: {lat:.6f}, {lon:.6f}")
-
     if filtered.empty:
         st.warning("No matching parking spots.")
         return
 
+    map_obj = create_map(lat, lon, filtered)
     st_folium(map_obj, width=700, height=500)

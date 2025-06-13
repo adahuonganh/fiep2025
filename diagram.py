@@ -126,13 +126,13 @@ def render():
         lat = st.sidebar.number_input("Latitude", value=50.1109, format="%.6f")
         lon = st.sidebar.number_input("Longitude", value=8.6821, format="%.6f")
 
-    st.sidebar.header("⚙️ Filters")
-    max_dist = st.sidebar.slider("Max distance (km)", 0.1, 20.0, 2.0, 0.1)
-    fee_min, fee_max = st.sidebar.slider("Fee range (€/h)", 0.0, 10.0, (0.0, 5.0), 0.1)
+    st.sidebar.header("Filters")
+    max_dist = st.sidebar.slider("Max distance (km)", 0.1, 20.0, 10.0, 0.1)
+    fee_min, fee_max = st.sidebar.slider("Fee range (€/h)", 0.0, 20.0, (0.0, 5.0), 0.1)
     ev_only = st.sidebar.checkbox("Only EV charging spots")
 
     if lat is None or lon is None:
-        lat, lon = 50.1109, 8.6821
+        lat, lon = 50.1270332, 8.6644491
 
     user_location = (lat, lon)
     filtered = filter_df(df, user_location, max_dist, (fee_min, fee_max), ev_only)

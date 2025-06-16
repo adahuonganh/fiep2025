@@ -1,3 +1,4 @@
+# map.py
 import streamlit as st
 import pandas as pd
 import folium
@@ -20,7 +21,7 @@ def haversine(lat1, lon1, lat2, lon2):
 def get_route(start_lon, start_lat, end_lon, end_lat):
     try:
         url = f"http://router.project-osrm.org/route/v1/driving/{start_lon},{start_lat};{end_lon},{end_lat}?overview=full&geometries=geojson"
-        res = requests.get(url).json()
+        res = requests.get(url, timeout=10).json()  # Added timeout
         if res['code'] == 'Ok':
             r = res['routes'][0]
             coords = [(lat, lon) for lon, lat in r['geometry']['coordinates']]
@@ -41,7 +42,7 @@ def filter_data(df, lat, lon, max_dist, fee_range, ev_only, sort_method):
     return df
 
 def create_map(lat, lon, df):
-    m = folium.Map(location=[lat, lon], zoom_start=14)
+    m = folium.Map(location=[lat, lon], zoom_start=14, control_scale=True)
     folium.Marker([lat, lon], popup="Your Location", icon=folium.Icon(color="blue")).add_to(m)
 
     for _, row in df.iterrows():
@@ -68,7 +69,7 @@ def create_map(lat, lon, df):
 
     return m
 
-def render_map(lat, lon, max_dist, fee_range, ev_only, sort_method, page):
+def render_map(lat, lon, max_dist, fee_range, ev_only, sort_method, page, map_key):
     df = load_data()
     filtered = filter_data(df, lat, lon, max_dist, fee_range, ev_only, sort_method)
 
@@ -80,18 +81,23 @@ def render_map(lat, lon, max_dist, fee_range, ev_only, sort_method, page):
     end_idx = start_idx + 10
     total_pages = (len(filtered) - 1) // 10 + 1
 
+    # Use the map_key to force refresh when needed
     map_obj = create_map(lat, lon, filtered.iloc[start_idx:end_idx])
-    st_folium(map_obj, width=700, height=500)
+    st_folium(map_obj, width=700, height=500, key=f"map_{map_key}")
 
     st.subheader("📍 Available Parking Spots")
     for _, row in filtered.iloc[start_idx:end_idx].iterrows():
         st.markdown(f"**🚗 {row['name']}** - €{row['fee_per_hour']}/h ({row['distance']:.2f} km)")
         st.markdown(f"[🗺️ Open in Google Maps](https://www.google.com/maps/dir/?api=1&origin={lat},{lon}&destination={row['latitude']},{row['longitude']}&travelmode=driving)")
 
-    if st.button("⬅️ Previous", disabled=page == 1):
-        st.session_state.page -= 1
-        st.rerun()
-    
-    if st.button("➡️ Next", disabled=page >= total_pages):
-        st.session_state.page += 1
-        st.rerun()
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col1:
+        if st.button("⬅️ Previous", disabled=page == 1):
+            st.session_state.page -= 1
+            st.rerun()
+    with col3:
+        if st.button("➡️ Next", disabled=page >= total_pages):
+            st.session_state.page += 1
+            st.rerun()
+    with col2:
+        st.markdown(f"<div style='text-align: center'>Page {page} of {total_pages}</div>", unsafe_allow_html=True)

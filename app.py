@@ -63,10 +63,3 @@ with tabs[1]:
 
 with tabs[2]:
     render_fuel_dashboard()
-
-with tabs[3]:
-    st.header("📝 Raw Parking Data")
-    st.warning("Data integration needs to be adjusted for consistency.")
-
-st.markdown("---")
-st.markdown("🚗 Built with ❤️ | [GitHub Repository](https://github.com/adahuonganh/fiep2025)")

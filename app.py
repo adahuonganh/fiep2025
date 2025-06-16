@@ -1,6 +1,7 @@
 import streamlit as st
 from geopy.geocoders import Nominatim
 from map import render_map
+importlib.reload(map)
 from diagram import render
 from fuel_dashboard import render_fuel_dashboard
 

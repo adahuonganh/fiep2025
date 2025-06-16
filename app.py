@@ -1,5 +1,7 @@
+# app.py
 import streamlit as st
 from geopy.geocoders import Nominatim
+from geopy.exc import GeocoderUnavailable, GeocoderTimedOut
 from map import render_map
 from diagram import render
 from fuel_dashboard import render_fuel_dashboard
@@ -12,11 +14,13 @@ st.set_page_config(
 
 # Initialize session state for location tracking & pagination
 if "user_lat" not in st.session_state:
-    st.session_state.user_lat = 50.1270332
+    st.session_state.user_lat = 50.1270332  # Default to Frankfurt
 if "user_lon" not in st.session_state:
     st.session_state.user_lon = 8.6644491
 if "page" not in st.session_state:
     st.session_state.page = 1
+if "map_key" not in st.session_state:
+    st.session_state.map_key = 0  # Key to force map refresh when needed
 
 st.sidebar.header("📍 Choose Your Location")
 
@@ -31,21 +35,31 @@ if location_method == "Use coordinates":
         st.session_state.user_lat = lat
         st.session_state.user_lon = lon
         st.session_state.page = 1  # Reset pagination when location changes
+        st.session_state.map_key += 1  # Force map refresh
         st.rerun()
 
 elif location_method == "Enter address/postal code":
-    address_input = st.sidebar.text_input("Enter address or postal code:")
-    if address_input:
-        geolocator = Nominatim(user_agent="parking_finder")
-        location = geolocator.geocode(address_input)
-        if location:
-            st.session_state.user_lat = location.latitude
-            st.session_state.user_lon = location.longitude
-            st.session_state.page = 1
-            st.sidebar.success(f"Found location: {st.session_state.user_lat:.6f}, {st.session_state.user_lon:.6f}")
-            st.rerun()
-        else:
-            st.sidebar.error("Could not find location.")
+    address_input = st.sidebar.text_input("Enter address or postal code:", key="address_input")
+    if st.sidebar.button("Locate") and address_input:
+        try:
+            geolocator = Nominatim(
+                user_agent="parking_finder_app",
+                timeout=10  # Increased timeout
+            )
+            location = geolocator.geocode(address_input)
+            if location:
+                st.session_state.user_lat = location.latitude
+                st.session_state.user_lon = location.longitude
+                st.session_state.page = 1
+                st.session_state.map_key += 1
+                st.sidebar.success(f"Found location: {st.session_state.user_lat:.6f}, {st.session_state.user_lon:.6f}")
+                st.rerun()
+            else:
+                st.sidebar.error("Could not find location. Please try a different address.")
+        except (GeocoderUnavailable, GeocoderTimedOut) as e:
+            st.sidebar.error("Geocoding service unavailable. Please try again later or use coordinates.")
+        except Exception as e:
+            st.sidebar.error(f"Error occurred: {str(e)}")
 
 st.sidebar.header("⚙️ Filters")
 max_dist = st.sidebar.slider("Max distance (km)", 0.1, 20.0, 10.0, 0.1)
@@ -56,10 +70,25 @@ sort_method = st.sidebar.radio("Sort parking spots by:", ["Closest Distance", "L
 tabs = st.tabs(["Map View", "Compare Parkings", "Fuel Prices", "Raw Data"])
 
 with tabs[0]:
-    render_map(st.session_state.user_lat, st.session_state.user_lon, max_dist, fee_range, ev_only, sort_method, st.session_state.page)
+    render_map(
+        st.session_state.user_lat, 
+        st.session_state.user_lon, 
+        max_dist, 
+        fee_range, 
+        ev_only, 
+        sort_method, 
+        st.session_state.page,
+        st.session_state.map_key  # Pass the map key to force refresh
+    )
 
 with tabs[1]:
-    render(st.session_state.user_lat, st.session_state.user_lon, max_dist, fee_range, ev_only)
+    render(
+        st.session_state.user_lat, 
+        st.session_state.user_lon, 
+        max_dist, 
+        fee_range, 
+        ev_only
+    )
 
 with tabs[2]:
     render_fuel_dashboard()

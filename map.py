@@ -12,7 +12,6 @@ def load_parking_data():
     for col in ['open_weekend', 'open_holidays', 'ev_charging', 'cashless_payment']:
         if col in df.columns:
             df[col] = df[col].fillna(False).astype(bool)
-    df['available_spots'] = df.apply(lambda x: random.randint(1, x['total_spots']), axis=1)
     df['opening_hours'] = df.apply(lambda x: f"{x['open_time']} - {x['close_time']}", axis=1)
     return df
 
@@ -109,7 +108,6 @@ def parking_finder_tab():
             st.markdown(f"**Price:** €{row['fee_per_hour']}/hour")
             st.markdown(f"**Distance:** {row['distance']:.2f} km")
             st.markdown(f"**Total Spots:** {row['total_spots']}")
-            st.markdown(f"**Available Now:** {row['available_spots']}")
             st.markdown(f"**EV Charging:** {'Yes' if row['ev_charging'] else 'No'}")
             st.markdown(f"**Open on Weekends:** {'Yes' if row['open_weekend'] else 'No'}")
             st.markdown(f"**Cashless Payment:** {'Yes' if row['cashless_payment'] else 'No'}")

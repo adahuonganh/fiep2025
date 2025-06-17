@@ -79,9 +79,9 @@ def parking_finder_tab():
     with st.sidebar.form("filter_form"):
         max_dist = st.slider("Max distance (km)", 0.1, 20.0, 10.0, 0.1)
         fee_range = st.slider("Fee range (€/h)", 0.0, 20.0, (0.0, 5.0), 0.1)
-        ev_only = st.checkbox("Only EV charging spots")
-        open_weekend = st.checkbox("Only open on weekends")
-        cashless_payment = st.checkbox("Only cashless payment")
+        ev_only = st.checkbox("EV charging spots")
+        open_weekend = st.checkbox("Open on weekends")
+        cashless_payment = st.checkbox("Cashless payment")
         sort_method = st.radio("Sort parking spots by:", ["Closest Distance", "Lowest Fee"])
         filter_submitted = st.form_submit_button("Apply Filters")
         if filter_submitted:

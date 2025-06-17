@@ -53,7 +53,7 @@ def location_sidebar():
 
 def main():
     st.set_page_config(
-        page_title="SmartMobility",
+        page_title="SmartPark",
         page_icon="🚗",
         layout="wide",
         initial_sidebar_state="expanded"
@@ -62,7 +62,7 @@ def main():
     init_session_state()
     location_sidebar()
     
-    st.markdown('<h1 class="main-header">🚗 SmartMobility</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header">🚗 SmartPark</h1>', unsafe_allow_html=True)
     
     tab1, tab2, tab3 = st.tabs(["Parking Finder", "Insights", "Fuel Prices"])
     

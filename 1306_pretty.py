@@ -181,7 +181,7 @@ def load_parking_data():
 @st.cache_data
 def load_fuel_prices():
     # Read the CSV data directly
-    df = pd.read_csv("Kraftstoffpreise an öffentlichen Tankstellen.csv", sep=";", skiprows=5)
+    df = pd.read_csv("fuel_price.csv", sep=";", skiprows=5)
     
     # Clean the data
     df = df.rename(columns={'Datum': 'date', 'Super E10': 'e10', 'Diesel': 'diesel', 'Super E5': 'e5'})

@@ -1,0 +1,37 @@
+@import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600&display=swap');
+
+:root {
+    --system-blue: #0A84FF;
+    --system-green: #30D158;
+    --system-red: #FF453A;
+    --system-orange: #FF9F0A;
+    --system-purple: #BF5AF2;
+    --system-gray: #8E8E93;
+    --system-background: #F2F2F7;
+    --system-card: #FFFFFF;
+    --system-label: #3C3C43;
+}
+
+* {
+    font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.main-header {
+    font-size: 2.8rem;
+    font-weight: 600;
+    text-align: center;
+    color: var(--system-label);
+    margin-bottom: 1.5rem;
+    letter-spacing: -0.5px;
+}
+
+.section-header {
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: var(--system-label);
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+
+/* ... (rest of CSS rules) */

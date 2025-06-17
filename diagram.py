@@ -1,105 +1,146 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-from math import radians, sin, cos, sqrt, atan2
-from datetime import datetime
-import pytz
-from geopy.geocoders import Nominatim
+import plotly.express as px
+import plotly.graph_objects as go
+import random
+from map import load_parking_data, filter_data
 
-TIMEZONE = 'Europe/Berlin'
+def create_apple_gauge(value, max_value, color, title):
+    fig = go.Figure(go.Indicator(
+        mode = "gauge+number",
+        value = value,
+        domain = {'x': [0, 1], 'y': [0, 1]},
+        title = {'text': title, 'font': {'size': 16}},
+        gauge = {
+            'axis': {'range': [0, max_value], 'tickwidth': 1, 'tickcolor': "var(--system-label)"},
+            'bar': {'color': color},
+            'bgcolor': "var(--system-card)",
+            'borderwidth': 0,
+            'bordercolor': "gray",
+            'steps': [
+                {'range': [0, max_value*0.6], 'color': '#D1E7DD'},
+                {'range': [max_value*0.6, max_value*0.8], 'color': '#FFF3CD'},
+                {'range': [max_value*0.8, max_value], 'color': '#F8D7DA'}],
+            'threshold': {
+                'line': {'color': color, 'width': 4},
+                'thickness': 0.75,
+                'value': value}
+        }
+    ))
+    fig.update_layout(
+        margin=dict(l=30, r=30, t=50, b=30),
+        height=250,
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font={'family': 'SF Pro Display, sans-serif'}
+    )
+    return fig
 
-def haversine(lat1, lon1, lat2, lon2):
-    try:
-        lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
-        dlon, dlat = lon2 - lon1, lat2 - lat1
-        a = sin(dlat/2)**2 + cos(lat1)*cos(lat2)*sin(dlon/2)**2
-        return 6371 * 2 * atan2(sqrt(a), sqrt(1-a))
-    except:
-        return float('inf')
+def get_fun_fact():
+    facts = [
+        "🚗 The average car spends 95% of its time parked!",
+        "🌱 One electric car can save 1.5 tons of CO2 per year compared to gasoline cars.",
+        "🚴‍♀️ Cycling just 10km per week can save 1,600kg of CO2 annually.",
+        "🏙️ Smart parking systems can reduce urban traffic by up to 30%.",
+        "⚡ Germany has over 60,000 public EV charging points.",
+        "🚊 Public transport in German cities is 5x more efficient than private cars.",
+        "🌍 Transportation accounts for 24% of global CO2 emissions.",
+        "🅿️ Dynamic parking pricing can reduce search time by 43%."
+    ]
+    return random.choice(facts)
 
-@st.cache_data
-def load_data():
-    try:
-        df = pd.read_csv("parking_data.csv", encoding="latin1")
-
-        df['open_time'] = df['open_time'].astype(str).str.zfill(2).replace("24", "00")
-        df['close_time'] = df['close_time'].astype(str).str.zfill(2).replace("24", "23")
-        df['open_time'] = pd.to_datetime(df['open_time'] + ":00", format="%H:%M").dt.time
-        df['close_time'] = pd.to_datetime(df['close_time'] + ":59", format="%H:%M").dt.time
-
-        df['ev_charging'] = pd.to_numeric(df['ev_charging'].replace('-', -1), errors='coerce').fillna(0)
-        df['open_weekend'] = df['open_weekend'].astype(bool)
-        df['cashless_payment'] = df['cashless_payment'].astype(bool)
-
-        return df
-    except Exception as e:
-        st.error(f"Error loading data: {str(e)}")
-        return pd.DataFrame()
-
-def filter_df(df, user_location, max_dist, fee_range, ev_only):
-    if df.empty:
-        return df
-
-    now = datetime.now(pytz.timezone(TIMEZONE))
-    current_time = now.time()
-    current_day = now.strftime("%A")
-
-    df['distance'] = df.apply(lambda r: haversine(user_location[0], user_location[1], r['latitude'], r['longitude']), axis=1)
-    df = df[df['distance'] <= max_dist]
-    df = df[df['fee_per_hour'].between(fee_range[0], fee_range[1])]
-    df = df[df['open_time'] <= current_time]
-    df = df[df['close_time'] >= current_time]
-
-    if current_day in ['Saturday', 'Sunday']:
-        df = df[df['open_weekend'] == True]
-
-    if ev_only:
-        df = df[df['ev_charging'] > 0]
-
-    return df.sort_values('distance').reset_index(drop=True)
-
-def show_comparison_charts(filtered_df):
-    if filtered_df.empty:
-        st.warning("No data to display.")
-        return
-
-    top5 = filtered_df.head(5)
-    st.subheader("📊 Compare Top 5 Parking Options")
-
-    # Fee per Hour
-    st.markdown("### 💰 Fee per Hour")
-    fig, ax = plt.subplots()
-    sns.barplot(x=top5['name'], y=top5['fee_per_hour'], ax=ax, palette="Oranges_r")
-    ax.set_ylabel("€/hour")
-    ax.set_title("Fee per Hour")
-    plt.xticks(rotation=45)
-    st.pyplot(fig)
-
-    # Travel Distance
-    st.markdown("### 🚗 Travel Distance")
-    fig, ax = plt.subplots()
-    sns.barplot(x=top5['name'], y=top5['distance'], ax=ax, palette="Blues_d")
-    ax.set_ylabel("Distance (km)")
-    ax.set_title("Travel Distance")
-    plt.xticks(rotation=45)
-    st.pyplot(fig)
-
-    # Spots Available
-    st.markdown("### 🅿️ Total Spot Availability")
-    fig, ax = plt.subplots()
-    sns.barplot(x=top5['name'], y=top5['total_spots'], ax=ax, palette="Greens_d")
-    ax.set_ylabel("Spots")
-    ax.set_title("Total Spot Availability")
-    plt.xticks(rotation=45)
-    st.pyplot(fig)
-
-def render(lat, lon, max_dist, fee_range, ev_only):
-    df = load_data()
-    filtered_df = filter_df(df, (lat, lon), max_dist, fee_range, ev_only)
-
-    if filtered_df.empty:
-        st.warning("No data available.")
-        return
-
-    show_comparison_charts(filtered_df)
+def insights_tab():
+    df = load_parking_data()
+    filtered_df = filter_data(df, st.session_state.user_lat, st.session_state.user_lon, 
+                            max_dist=10.0, fee_range=(0.0, 5.0), 
+                            ev_only=False, open_weekend=False, cashless_payment=False)
+    
+    st.markdown('<div class="section-header">📊 Parking Statistics</div>', unsafe_allow_html=True)
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if not filtered_df.empty:
+            avg_fee = filtered_df['fee_per_hour'].mean()
+            total_spots = filtered_df['total_spots'].sum()
+            available_spots = filtered_df['available_spots'].sum()
+            availability_rate = (available_spots / total_spots * 100) if total_spots > 0 else 0
+            
+            st.markdown(f"""
+            <div class="metric-card">
+                <div style="font-size: 1.1rem; font-weight: 500; color: var(--system-label);">Average Fee</div>
+                <div style="font-size: 1.8rem; font-weight: 600; color: var(--system-blue);">€{avg_fee:.2f}/hour</div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            st.markdown(f"""
+            <div class="metric-card">
+                <div style="font-size: 1.1rem; font-weight: 500; color: var(--system-label);">Total Spots</div>
+                <div style="font-size: 1.8rem; font-weight: 600; color: var(--system-blue);">{total_spots:,}</div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            st.markdown(f"""
+            <div class="metric-card">
+                <div style="font-size: 1.1rem; font-weight: 500; color: var(--system-label);">Available Now</div>
+                <div style="font-size: 1.8rem; font-weight: 600; color: var(--system-green);">{available_spots:,}</div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            st.markdown(f"""
+            <div class="metric-card">
+                <div style="font-size: 1.1rem; font-weight: 500; color: var(--system-label);">Availability Rate</div>
+                <div style="font-size: 1.8rem; font-weight: 600; color: { '#30D158' if availability_rate > 30 else '#FF9F0A' };">{availability_rate:.1f}%</div>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.warning("No parking spots in the area.")
+        
+        st.markdown(f'<div class="fun-fact">**💡 Smart Tip**\n\n{get_fun_fact()}</div>', unsafe_allow_html=True)
+    
+    with col2:
+        if not filtered_df.empty:
+            fig_price = px.histogram(filtered_df, x='fee_per_hour', 
+                                   title='Price Distribution',
+                                   labels={'fee_per_hour': 'Fee per hour (€)'},
+                                   color_discrete_sequence=['#0A84FF'])
+            fig_price.update_layout(
+                plot_bgcolor='rgba(0,0,0,0)',
+                paper_bgcolor='rgba(0,0,0,0)',
+                font={'family': 'SF Pro Display, sans-serif'}
+            )
+            st.plotly_chart(fig_price, use_container_width=True)
+    
+    st.markdown('<div class="section-header">🌱 Environmental Impact</div>', unsafe_allow_html=True)
+    
+    co2_data = {
+        'Car (Gasoline)': 120, 'Car (Diesel)': 110, 'Electric Car': 30, 'Hybrid Car': 80,
+        'Public Transport': 25, 'Bicycle': 0, 'Walking': 0, 'E-Scooter': 15
+    }
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.plotly_chart(
+            create_apple_gauge(
+                co2_data['Car (Gasoline)'],
+                150,
+                '#FF453A',
+                'Gasoline Car Emissions'
+            ),
+            use_container_width=True
+        )
+    
+    with col2:
+        st.plotly_chart(
+            create_apple_gauge(
+                co2_data['Electric Car'],
+                150,
+                '#30D158',
+                'Electric Car Emissions'
+            ),
+            use_container_width=True
+        )
+    
+    st.markdown('<div class="section-header">💰 Trip Calculator</div>', unsafe_allow_html=True)
+    # ... (rest of trip calculator code)

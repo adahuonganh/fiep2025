@@ -3,7 +3,7 @@ from geopy.geocoders import Nominatim
 from geopy.extra.rate_limiter import RateLimiter
 from map import parking_finder_tab
 from diagram import insights_tab
-from fuel_price import fuel_tab
+from fuel_dashboard import fuel_tab
 
 # Initialize session state
 def init_session_state():

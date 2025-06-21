@@ -7,16 +7,16 @@ from diagram import insights_tab
 from fuel_dashboard import fuel_tab
 
 st.set_page_config(
-        page_title="SmartPark",
-        page_icon="🚗",
-        layout="wide",
-        initial_sidebar_state="expanded"
-    )
+    page_title="SmartPark",
+    page_icon="🚗",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
 @st.cache_data
 def load_data():
-    return pd.read_csv("parking_data.csv", encoding="latin1")
-df = load_data()
+    df = pd.read_csv("parking_data.csv", encoding="latin1")
+    return df.rename(columns={"latitude": "lat", "longitude": "lon"})
 
 # Initialize session state
 def init_session_state():
@@ -36,8 +36,8 @@ CITY_COORDS = {
     "Köln": (50.9375, 6.9603),
 }
 
-# Common location selection sidebar
-def location_sidebar():
+# Sidebar for location selection
+def location_sidebar(df):
     cities = sorted([c for c in df['city'].dropna().unique() if c in CITY_COORDS])
     st.sidebar.header("📍 Choose Your City")
     selected_city = st.sidebar.selectbox("City:", cities, index=0)
@@ -80,7 +80,7 @@ def location_sidebar():
                         st.sidebar.error("Could not find location.")
                 except Exception as e:
                     st.sidebar.error(f"Geocoding error: {e}")
-    
+
     elif location_method == "City center":
         if st.sidebar.button("🔍 Use city center location"):
             lat_lon = CITY_COORDS.get(selected_city)
@@ -94,21 +94,20 @@ def location_sidebar():
             else:
                 st.sidebar.error(f"No coordinates defined for '{selected_city}'.")
 
-
+# Main app
 def main():
     init_session_state()
-    location_sidebar()
-    
+    df = load_data()
+    location_sidebar(df)
+
     st.markdown('<h1 class="main-header">🚗 SmartPark</h1>', unsafe_allow_html=True)
-    
+
     tab1, tab2, tab3 = st.tabs(["Parking Finder", "Insights", "Fuel Prices"])
-    
+
     with tab1:
         parking_finder_tab()
-    
     with tab2:
         insights_tab()
-    
     with tab3:
         fuel_tab()
 

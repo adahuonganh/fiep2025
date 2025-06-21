@@ -1,9 +1,22 @@
 import streamlit as st
+import pandas as pd
 from geopy.geocoders import Nominatim
 from geopy.extra.rate_limiter import RateLimiter
 from map import parking_finder_tab
 from diagram import insights_tab
 from fuel_dashboard import fuel_tab
+
+st.set_page_config(
+        page_title="SmartPark",
+        page_icon="🚗",
+        layout="wide",
+        initial_sidebar_state="expanded"
+    )
+
+@st.cache_data
+def load_data():
+    return pd.read_csv("parking_data.csv", encoding="latin1")
+df = load_data()
 
 # Initialize session state
 def init_session_state():
@@ -14,10 +27,27 @@ def init_session_state():
     if "page" not in st.session_state:
         st.session_state.page = 1
 
+# Map city names to central coordinates
+CITY_COORDS = {
+    "Berlin": (52.5200, 13.4050),
+    "Frankfurt am Main": (50.1109, 8.6821),
+    "Hamburg": (53.5511, 9.9937),
+    "München": (48.1351, 11.5820),
+    "Köln": (50.9375, 6.9603),
+}
+
 # Common location selection sidebar
 def location_sidebar():
+    cities = sorted([c for c in df['city'].dropna().unique() if c in CITY_COORDS])
+    st.sidebar.header("📍 Choose Your City")
+    selected_city = st.sidebar.selectbox("City:", cities, index=0)
+
+    # Filter and store in session state
+    city_df = df[df['city'] == selected_city].reset_index(drop=True)
+    st.session_state.filtered_df = city_df
+
     st.sidebar.header("📍 Choose Your Location")
-    location_method = st.sidebar.radio("Select method:", ["Use coordinates", "Enter address/postal code"], index=0)
+    location_method = st.sidebar.radio("Select method:", ["City center", "Use coordinates", "Enter address/postal code"], index=0)
 
     if location_method == "Use coordinates":
         with st.sidebar.form("coord_form"):
@@ -50,15 +80,22 @@ def location_sidebar():
                         st.sidebar.error("Could not find location.")
                 except Exception as e:
                     st.sidebar.error(f"Geocoding error: {e}")
+    
+    elif location_method == "City center":
+        if st.sidebar.button("🔍 Use city center location"):
+            lat_lon = CITY_COORDS.get(selected_city)
+            if lat_lon:
+                lat, lon = lat_lon
+                st.session_state.user_lat = lat
+                st.session_state.user_lon = lon
+                st.session_state.page = 1
+                st.sidebar.success(f"Using city center: {lat:.6f}, {lon:.6f}")
+                st.rerun()
+            else:
+                st.sidebar.error(f"No coordinates defined for '{selected_city}'.")
+
 
 def main():
-    st.set_page_config(
-        page_title="SmartPark",
-        page_icon="🚗",
-        layout="wide",
-        initial_sidebar_state="expanded"
-    )
-    
     init_session_state()
     location_sidebar()
     

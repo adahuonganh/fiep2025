@@ -8,14 +8,14 @@ import plotly.express as px
 import random
 
 @st.cache_data
-def load_parking_data():
-    df = st.session_state.get("filtered_df", load_parking_data())
-    # Ensure consistent column names
-    df = df.rename(columns={
-        'latitude': 'lat',
-        'longitude': 'lon'
-    })
+def load_full_parking_data():
+    df = pd.read_csv("parking_data.csv", encoding="latin1")
+    df = df.rename(columns={'latitude': 'lat', 'longitude': 'lon'})
     return df
+
+def load_parking_data():
+    return st.session_state.get("filtered_df", load_full_parking_data())
+    # Ensure consistent column names
 
 def get_fun_fact():
     facts = [
@@ -105,19 +105,27 @@ def create_map(lat, lon, df):
         ).add_to(m)
     return m
 
+max_dist_default = st.session_state.get("max_dist", 10.0)
+fee_range_default = st.session_state.get("fee_range", (0.0, 5.0))
+ev_only_default = st.session_state.get("ev_only", False)
+open_weekend_default = st.session_state.get("open_weekend", False)
+cashless_payment_default = st.session_state.get("cashless_payment", False)
+sort_method_default = st.session_state.get("sort_method", "Closest Distance")
+
+
 def parking_finder_tab():
     df = load_parking_data()
     
     st.sidebar.header("⚙️ Filters")
     with st.sidebar.form("filter_form"):
-        max_dist = st.slider("Max distance (km)", 0.1, 20.0, 10.0, 0.1)
-        fee_range = st.slider("Fee range (€/h)", 0.0, 20.0, (0.0, 5.0), 0.1)
-        ev_only = st.checkbox("EV charging spots")
-        open_weekend = st.checkbox("Open on weekends")
-        cashless_payment = st.checkbox("Cashless payment")
-        sort_method = st.radio("Sort parking spots by:", ["Closest Distance", "Lowest Fee"])
+        max_dist = st.slider("Max distance (km)", 0.1, 20.0, max_dist_default, 0.1)
+        fee_range = st.slider("Fee range (€/h)", 0.0, 20.0, fee_range_default, 0.1)
+        ev_only = st.checkbox("EV charging spots", value=ev_only_default)
+        open_weekend = st.checkbox("Open on weekends", value=open_weekend_default)
+        cashless_payment = st.checkbox("Cashless payment", value=cashless_payment_default)
+        sort_method = st.radio("Sort parking spots by:", ["Closest Distance", "Lowest Fee"], index=0 if sort_method_default == "Closest Distance" else 1)
         filter_submitted = st.form_submit_button("Apply Filters")
-        
+
         if filter_submitted:
             st.session_state.max_dist = max_dist
             st.session_state.fee_range = fee_range

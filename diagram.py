@@ -9,9 +9,26 @@ from map import load_parking_data
 @st.cache_data
 def load_fuel_prices():
     # Read the CSV data directly
-    df = pd.read_csv("fuel.csv")
-    df2['date'] = pd.to_datetime(df2['date'], format='%Y-%m-%d')
-    df2 = df2.set_index('date')
+    df = pd.read_csv("fuel_price.csv", sep=";", skiprows=5)
+    
+    # Clean the data
+    df = df.rename(columns={'Datum': 'date', 'Super E10': 'e10', 'Diesel': 'diesel', 'Super E5': 'e5'})
+    df['date'] = pd.to_datetime(df['date'])
+    
+    # Convert comma decimal separators to dots and convert to float
+    for col in ['e10', 'diesel', 'e5']:
+        df[col] = df[col].str.replace(',', '.').astype(float)
+    
+    # Set date as index
+    df = df.set_index('date')
+    
+    # Rename columns to match original code
+    df = df.rename(columns={
+        'e10': 'Super E10',
+        'diesel': 'Diesel',
+        'e5': 'Super E5'
+    })
+    
     return df
 
 def create_apple_gauge(value, max_value, color, title):

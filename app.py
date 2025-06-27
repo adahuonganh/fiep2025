@@ -26,6 +26,8 @@ def init_session_state():
         st.session_state.user_lon = 8.6644491
     if "page" not in st.session_state:
         st.session_state.page = 1
+    if "selected_city" not in st.session_state:
+        st.session_state.selected_city = None
 
 # Map city names to central coordinates
 CITY_COORDS = {
@@ -41,10 +43,7 @@ def location_sidebar(df):
     cities = sorted([c for c in df['city'].dropna().unique() if c in CITY_COORDS])
     st.sidebar.header("📍 Choose Your City")
     selected_city = st.sidebar.selectbox("City:", cities, index=0)
-
-    # Filter and store in session state
-    city_df = df[df['city'] == selected_city].reset_index(drop=True)
-    st.session_state.filtered_df = city_df
+    st.session_state.selected_city = selected_city
 
     st.sidebar.header("📍 Choose Your Location")
     location_method = st.sidebar.radio("Select method:", ["City center", "Use coordinates", "Enter address/postal code"], index=0)
@@ -94,20 +93,27 @@ def location_sidebar(df):
             else:
                 st.sidebar.error(f"No coordinates defined for '{selected_city}'.")
 
+def filter_city(df):
+    # Always filter by selected city for all tabs
+    if "selected_city" in st.session_state and st.session_state.selected_city:
+        return df[df['city'] == st.session_state.selected_city].reset_index(drop=True)
+    return df
+
 # Main app
 def main():
     init_session_state()
     df = load_data()
     location_sidebar(df)
+    city_df = filter_city(df)
 
     st.markdown('<h1 class="main-header">🚗 SmartPark</h1>', unsafe_allow_html=True)
 
     tab1, tab2, tab3 = st.tabs(["Parking Finder", "Insights", "Fuel Prices"])
 
     with tab1:
-        parking_finder_tab()
+        parking_finder_tab(df)  # Use df directly, do NOT reload or filter by city here
     with tab2:
-        insights_tab()
+        insights_tab(df)  # Use df directly, do NOT reload or filter by city here
     with tab3:
         fuel_tab()
 

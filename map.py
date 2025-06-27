@@ -9,7 +9,7 @@ import random
 
 @st.cache_data
 def load_full_parking_data():
-    df = pd.read_csv("parking_data.csv", encoding="latin1")
+    df = pd.read_csv("parking_data.csv", encoding="utf-8")
     df = df.rename(columns={'latitude': 'lat', 'longitude': 'lon'})
     return df
 

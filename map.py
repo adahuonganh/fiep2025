@@ -113,9 +113,8 @@ cashless_payment_default = st.session_state.get("cashless_payment", False)
 sort_method_default = st.session_state.get("sort_method", "Closest Distance")
 
 
-def parking_finder_tab():
-    df = load_parking_data()
-    
+def parking_finder_tab(df):
+    # Use df directly instead of loading it inside the function
     st.sidebar.header("⚙️ Filters")
     with st.sidebar.form("filter_form"):
         max_dist = st.slider("Max distance (km)", 0.1, 20.0, max_dist_default, 0.1)

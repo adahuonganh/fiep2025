@@ -145,8 +145,7 @@ def show_comparison_charts(filtered_df):
     )
     st.plotly_chart(fig, use_container_width=True)
 
-def insights_tab():
-    df = load_parking_data()
+def insights_tab(df):
     filtered_df = filter_df(df, (st.session_state.user_lat, st.session_state.user_lon), 
                           max_dist=10.0, fee_range=(0.0, 5.0), ev_only=False)
         

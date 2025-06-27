@@ -1,12 +1,12 @@
-streamlit = 1.37.1
-pandas = 2.2.2
-geopy = 2.4.1
-folium = 0.19.6
+streamlit 
+pandas 
+geopy 
+folium 
 streamlit-folium
-requests = 2.32.3
-plotly = 5.24.1
-numpy = 1.26.4
-matplotlib = 3.9.2
-seaborn = 0.13.2
-pytz = 2024.1
-geocoder = 1.38.1
+requests 
+plotly
+numpy
+matplotlib
+seaborn 
+pytz 
+geocoder 

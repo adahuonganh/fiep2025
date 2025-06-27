@@ -15,7 +15,7 @@ st.set_page_config(
 
 @st.cache_data
 def load_data():
-    df = pd.read_csv("parking_data.csv", encoding="latin1")
+    df = pd.read_csv("parking_data.csv", encoding="utf-8")
     return df.rename(columns={"latitude": "lat", "longitude": "lon"})
 
 # Initialize session state
